@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid" style="width: 40em">
+  <div class="container-fluid" :style="{ width: containerWidth }">
     <div class="card m-3">
       <div class="card-header">
         <ul class="nav nav-tabs">
@@ -13,21 +13,23 @@
       </div>
       <div class="card-body">
         <div v-if="selectedMenu === 'Todos'">
-          <form @submit.prevent="addTodo">
-            <div class="row">
-              <div class="col-3">
-                <label for="newTodo" class="form-label">New Todo</label>
+          <slot name="todo-header">
+            <form @submit.prevent="addTodo">
+              <div class="row">
+                <div class="col-3">
+                  <label for="newTodo" class="form-label">New Todo</label>
+                </div>
+                <div class="col-7">
+                  <input v-model="newTodo" type="text" class="form-control form-control-sm" name="newTodo" id="newTodo">
+                </div>
+                <div class="col-2">
+                  <button class="btn btn-primary btn-sm float-end" type="submit" name="button">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
               </div>
-              <div class="col-7">
-                <input v-model="newTodo" type="text" class="form-control form-control-sm" name="newTodo" id="newTodo">
-              </div>
-              <div class="col-2">
-                <button class="btn btn-primary btn-sm float-end" type="submit" name="button">
-                  <i class="bi bi-plus"></i>
-                </button>
-              </div>
-            </div>
-          </form>
+            </form>
+          </slot>
 
           <!-- Filter Buttons -->
           <div class="float-end mt-3">
@@ -57,10 +59,12 @@
         </div>
 
         <div v-if="selectedMenu === 'Post'">
-          <label for="userSelect">Select User:</label>
-          <select id="userSelect" v-model="selectedUser">
-            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-          </select>
+          <slot name="post-header">
+            <label for="userSelect">Select User:</label>
+            <select id="userSelect" v-model="selectedUser">
+              <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
+            </select>
+          </slot>
 
           <ul v-if="selectedUser">
             <li v-for="post in userPosts" :key="post.id">
@@ -77,6 +81,13 @@
 export default {
   name: 'ToDoList',
 
+  props: {
+    containerWidth: {
+      type: String,
+      default: '40em'
+    }
+  },
+
   data: () => ({
     newTodo: '',
     todos: [],
@@ -89,15 +100,19 @@ export default {
 
   methods: {
     addTodo() {
-      this.todos.push({
-        title: this.newTodo,
-        done: false
-      });
-      this.newTodo = '';
+      if (this.newTodo.trim()) {
+        this.todos.push({
+          title: this.newTodo,
+          done: false
+        });
+        this.newTodo = '';
+      }
     },
     removeTodo(todo) {
       const todoIndex = this.todos.indexOf(todo);
-      this.todos.splice(todoIndex, 1);
+      if (todoIndex !== -1) {
+        this.todos.splice(todoIndex, 1);
+      }
     },
     toggleFilter(type) {
       if (this.filter === type) {
@@ -146,3 +161,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.done {
+  text-decoration: line-through;
+}
+</style>
